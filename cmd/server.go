@@ -70,6 +70,10 @@ var (
 	flagAuthOktaIssuer string
 	flagAuthOktaClaims []string
 
+	// Generic OIDC auth.
+	flagAuthOIDCJWKSUrl string
+	flagAuthOIDCClaims  []string
+
 	// Provider Network Mirror
 	flagProviderNetworkMirrorEnabled            bool
 	flagProviderNetworkMirrorPullThroughEnabled bool
@@ -195,6 +199,10 @@ func init() {
 	// Okta auth options.
 	serverCmd.Flags().StringVar(&flagAuthOktaIssuer, "auth-okta-issuer", "", "Okta issuer")
 	serverCmd.Flags().StringSliceVar(&flagAuthOktaClaims, "auth-okta-claims", nil, "Okta claims to validate")
+
+	// OIDC auth options.
+	serverCmd.Flags().StringVar(&flagAuthOIDCJWKSUrl, "auth-oidc-jwks-url", "", "OIDC JWKS URL")
+	serverCmd.Flags().StringSliceVar(&flagAuthOIDCClaims, "auth-oidc-claims", nil, "OIDC claims to validate")
 
 	// Terraform Login Protocol options.
 	serverCmd.Flags().StringVar(&flagLoginClient, "login-client", "", "The client_id value to use when making requests")
@@ -383,6 +391,10 @@ func authMiddleware() endpoint.Middleware {
 
 	if flagAuthOktaIssuer != "" {
 		providers = append(providers, auth.NewOktaProvider(flagAuthOktaIssuer, flagAuthOktaClaims...))
+	}
+
+	if flagAuthOIDCJWKSUrl != "" {
+		providers = append(providers, auth.NewOIDCProvider(flagAuthOIDCJWKSUrl, flagAuthOIDCClaims...))
 	}
 
 	return auth.Middleware(providers...)
